@@ -1,5 +1,4 @@
 ﻿using System.IO;
-using System.Windows;
 using Gameloop.Vdf;
 using Gameloop.Vdf.Linq;
 
@@ -9,7 +8,6 @@ public interface ILocalizationService
 {
     LocalizationService.Localization? ObtainCurrentLocalizationForHeroes();
     LocalizationService.Localization? ObtainCurrentLocalizationForItems();
-    
     
     bool ChangeLocalizationForHeroes(LocalizationService.Localization localization);
     bool ChangeLocalizationForItems(LocalizationService.Localization localization);

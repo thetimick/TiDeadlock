@@ -8,8 +8,8 @@ public interface IStorageService
 {
     StorageEntity? Entity { get; }
     
-    StorageEntity Obtain();
-    void Save();
+    Task<StorageEntity> ObtainAsync();
+    Task SaveAsync();
 }
 
 public class StorageService: IStorageService
@@ -20,14 +20,15 @@ public class StorageService: IStorageService
 
     private readonly JsonSerializerOptions _options = new() { WriteIndented = true }; 
     
-    public StorageEntity Obtain()
+    public async Task<StorageEntity> ObtainAsync()
     {
         if (Entity != null)
             return Entity;
         
         try
         {
-            Entity = JsonSerializer.Deserialize<StorageEntity>(File.ReadAllText(StorageFilename));
+            var str = await File.ReadAllTextAsync(StorageFilename);
+            Entity = JsonSerializer.Deserialize<StorageEntity>(str);
             return Entity ?? new StorageEntity();
         }
         catch
@@ -37,16 +38,9 @@ public class StorageService: IStorageService
         }
     }
 
-    public void Save()
+    public async Task SaveAsync()
     {
-        try
-        {
-            ArgumentNullException.ThrowIfNull(Entity);
-            File.WriteAllText(StorageFilename, JsonSerializer.Serialize(Entity, _options));
-        }
-        catch
-        {
-            // ignored
-        }
+        if (Entity != null)
+            await File.WriteAllTextAsync(StorageFilename, JsonSerializer.Serialize(Entity, _options));
     }
 }

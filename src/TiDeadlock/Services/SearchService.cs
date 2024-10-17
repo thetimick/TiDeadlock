@@ -1,7 +1,9 @@
 ﻿using System.Diagnostics;
 using System.IO;
+using System.Windows;
 using Gameloop.Vdf;
 using Gameloop.Vdf.Linq;
+using Microsoft.Win32;
 
 namespace TiDeadlock.Services;
 
@@ -16,21 +18,23 @@ public class SearchService(IStorageService storage): ISearchService
     
     public string? GetPathForDeadlock()
     {
+        // Если есть данные в кеше - отдаем
         if (_cachedPath is not null)
             return _cachedPath;
 
-        var pathFromStorage = storage.Obtain().Path;
-        if (pathFromStorage is not null && File.Exists(pathFromStorage))
+        // Если есть корректный путь в storage - отдаем
+        if (CheckExecutable(storage.Entity?.Path, storage.Entity?.DeadlockExecutable))
         {
-            _cachedPath = pathFromStorage;
+            _cachedPath = storage.Entity?.Path;
             return _cachedPath;
         }
         
         try
         {
-            var steamProcess = Process.GetProcesses().FirstOrDefault(process => process.ProcessName == "steam");
-            var steamDirectory = Path.GetDirectoryName(steamProcess?.MainModule?.FileName);
-            ArgumentException.ThrowIfNullOrEmpty(steamDirectory);
+            // Нашли директорию Steam, пытаемся вытащить путь оттуда
+            var steamDirectory = GetSteamPath();
+            if (steamDirectory is null)
+                throw new DirectoryNotFoundException("Не удалось найти директорию Steam!\nПожалуйста, запустите его, перед запуском программы...");
             
             VToken? result = null;
             var vdfString = File.ReadAllText(Path.Combine(steamDirectory, "steamapps", "libraryfolders.vdf"));
@@ -66,7 +70,71 @@ public class SearchService(IStorageService storage): ISearchService
         }
         catch
         {
-            return null;
+            // Пытаемся получить путь к папке напрямую, через пользователя
+            MessageBox.Show(
+                "Не удалось получить путь к папке с игрой!\nПожалуйста, укажите его самостоятельно...",
+                "Информация", 
+                MessageBoxButton.OK, 
+                MessageBoxImage.Information
+            );
+
+            var pathFromFolder = OpenFolder();
+            if (pathFromFolder is null)
+            {
+                MessageBox.Show(
+                    "Не удалось получить путь к папке с игрой!\nПриложение будет закрыто...",
+                    "Информация", 
+                    MessageBoxButton.OK, 
+                    MessageBoxImage.Information
+                );
+                System.Windows.Application.Current.Shutdown();
+            }
+            
+            _cachedPath = pathFromFolder;
+            return _cachedPath;
         }
+    }
+
+    private static bool CheckExecutable(string? path, string? executable)
+    {
+        if (path is null || executable is null)
+            return false;
+        var fullPath = Path.Combine(path, executable);
+        return File.Exists(fullPath);
+    }
+
+    private string? GetSteamPath()
+    {
+        // Дефолтный путь
+        var defaultPath = Path.Combine(Environment.GetFolderPath(Environment.SpecialFolder.ProgramFilesX86), "Steam");
+        if (CheckExecutable(defaultPath, storage.Entity?.SteamExecutable))
+            return defaultPath;
+
+        // Путь из запущенные процессов
+        var processPath = Path.GetDirectoryName(Process.GetProcesses().FirstOrDefault(process => process.ProcessName == "steam")?.MainModule?.FileName);
+        if (CheckExecutable(processPath, storage.Entity?.SteamExecutable))
+            return processPath;
+
+        return null;
+    }
+
+    private string? OpenFolder()
+    {
+        do
+        {
+            var dialog = new OpenFolderDialog
+            {
+                Title = "Укажите путь к папке с Deadlock",
+                Multiselect = false
+            };
+
+            if (dialog.ShowDialog() == true && CheckExecutable(dialog.FolderName, storage.Entity?.DeadlockExecutable))
+                return dialog.FolderName;
+            
+            if (MessageBox.Show("Путь указан неверно!\nХотите повторить?", "Вопрос", MessageBoxButton.YesNo, MessageBoxImage.Question) != MessageBoxResult.Yes) 
+                break;
+        } while (true);
+
+        return null;
     }
 }

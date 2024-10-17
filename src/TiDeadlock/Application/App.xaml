@@ -7,6 +7,6 @@
     Startup="OnStartup">
 
     <Application.Resources>
-        <FontFamily x:Key="CustomFont">pack://application:,,,/Assets/Font.otf #Forevs Demo</FontFamily>
+        <FontFamily x:Key="CustomFont">pack://application:,,,/Resources/Assets/Font.otf #Forevs Demo</FontFamily>
     </Application.Resources>
 </Application>

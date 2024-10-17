@@ -1,9 +1,6 @@
 ﻿using System.Windows;
 using System.Windows.Input;
-using System.Windows.Media;
-using System.Windows.Media.Animation;
-using TiDeadlock.Services;
-using TiDeadlock.ViewModel.Main;
+using TiDeadlock.ViewModels.Main;
 
 namespace TiDeadlock.Windows.Main;
 
@@ -15,19 +12,24 @@ public partial class MainWindow
         InitializeComponent();
     }
     
-    private void Close_Click(object sender, RoutedEventArgs e)
+    private void MainWindow_OnLoaded(object? sender, EventArgs e)
     {
-        Close();
-    }
-
-    private void Minimize_Click(object sender, RoutedEventArgs e)
-    {
-        WindowState = WindowState.Minimized;
+        // ((MainViewModel)DataContext).OnLoaded();
     }
     
     private void Border_OnMouseDown(object sender, MouseButtonEventArgs e)
     {
         if (e.ButtonState == MouseButtonState.Pressed)
             DragMove();
+    }
+    
+    private void Minimize_Click(object sender, RoutedEventArgs e)
+    {
+        WindowState = WindowState.Minimized;
+    }
+    
+    private void Close_Click(object sender, RoutedEventArgs e)
+    {
+        Close();
     }
 }

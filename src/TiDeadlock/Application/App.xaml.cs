@@ -3,10 +3,12 @@ using System.Windows.Threading;
 using Microsoft.Extensions.Configuration;
 using Microsoft.Extensions.DependencyInjection;
 using Microsoft.Extensions.Hosting;
+using Serilog;
 using TiDeadlock.Application.AppHost;
 using TiDeadlock.Services;
-using TiDeadlock.ViewModel.Main;
+using TiDeadlock.Services.Update;
 using TiDeadlock.Windows.Main;
+using MainViewModel = TiDeadlock.ViewModels.Main.MainViewModel;
 
 namespace TiDeadlock.Application;
 
@@ -23,14 +25,23 @@ public partial class App
         .ConfigureServices(
             collection =>
             {
+                Log.Logger = new LoggerConfiguration()
+                    .Enrich.FromLogContext()
+                    .WriteTo.File("TiDeadlock.log")
+                    .CreateLogger();
+                
+                collection.AddLogging(builder => builder.AddSerilog(dispose: true));
+                
                 collection.AddHostedService<ApplicationHostService>();
+                
+                collection.AddSingleton<IUpdateService, UpdateService>();
                 
                 collection.AddSingleton<IStorageService, StorageService>();
                 collection.AddSingleton<ISearchService, SearchService>();
                 collection.AddSingleton<ILocalizationService, LocalizationService>();
                 
-                collection.AddTransient<MainWindow>();
-                collection.AddTransient<MainViewModel>();
+                collection.AddSingleton<MainViewModel>();
+                collection.AddSingleton<MainWindow>();
             }
         )
         .Build();
@@ -42,20 +53,21 @@ public partial class App
     
     private void OnExit(object sender, ExitEventArgs e)
     {
-        AppHost.StopAsync()
-            .Wait();
+        AppHost.StopAsync().Wait();
         AppHost.Dispose();
     }
     
     private void OnDispatcherUnhandledException(object sender, DispatcherUnhandledExceptionEventArgs e)
     {
+        AppHost.Services.GetService<ILogger>()?.Fatal(e.Exception, "FatalError!");
+        
         MessageBox.Show(
-            $"{e.Exception.Message}\n\n{string.Join("", e.Exception.StackTrace?.Take(1000) ?? [])}", 
+            $"{e.Exception.Message}\n\n{string.Join("", e.Exception.StackTrace?.Take(800) ?? [])}", 
             "FatalError!", 
             MessageBoxButton.OK, 
             MessageBoxImage.Error
         );
-        
+
         e.Handled = true;
     }
 }

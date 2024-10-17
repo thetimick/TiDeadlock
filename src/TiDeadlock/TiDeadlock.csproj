@@ -8,7 +8,7 @@
         <Company>the_timick</Company>
         <AssemblyVersion>1.0</AssemblyVersion>
         <FileVersion>1.0</FileVersion>
-        <ApplicationIcon>Assets\Icon.ico</ApplicationIcon>
+        <ApplicationIcon>Resources\Assets\Icon.ico</ApplicationIcon>
     </PropertyGroup>
     
     <ItemGroup>
@@ -24,6 +24,9 @@
       <PackageReference Include="Gameloop.Vdf" Version="0.6.2" />
       <PackageReference Include="JetBrains.Annotations" Version="2024.2.0" />
       <PackageReference Include="Microsoft.Extensions.Hosting" Version="8.0.1" />
+      <PackageReference Include="Serilog" Version="4.0.2" />
+      <PackageReference Include="Serilog.Extensions.Logging" Version="8.0.0" />
+      <PackageReference Include="Serilog.Sinks.File" Version="6.0.0" />
     </ItemGroup>
 
     <ItemGroup>
@@ -44,9 +47,7 @@
 
     <ItemGroup>
         <None Remove="Assets\Logo.png" />
-        <Resource Include="Assets\Logo.png" />
         <None Remove="Assets\Font.otf" />
-        <Resource Include="Assets\Font.otf" />
     </ItemGroup>
 
     <ItemGroup>
@@ -71,5 +72,14 @@
         <Generator>PublicResXFileCodeGenerator</Generator>
         <LastGenOutput>AppLocalization.Designer.cs</LastGenOutput>
       </EmbeddedResource>
+    </ItemGroup>
+
+    <ItemGroup>
+      <Resource Include="Resources\Assets\Font.otf" />
+      <Resource Include="Resources\Assets\Logo.png" />
+    </ItemGroup>
+
+    <ItemGroup>
+      <ProjectReference Include="..\TiDeadlock.Services\TiDeadlock.Services.csproj" />
     </ItemGroup>
 </Project>

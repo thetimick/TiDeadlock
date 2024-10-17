@@ -6,7 +6,7 @@
     xmlns:mc="http://schemas.openxmlformats.org/markup-compatibility/2006"
     xmlns:res="clr-namespace:TiDeadlock.Resources"
     xmlns:spSpacing="clr-namespace:TiDeadlock.Extensions.StackPanelSpacing"
-    xmlns:vm="clr-namespace:TiDeadlock.ViewModel.Main"
+    xmlns:vm="clr-namespace:TiDeadlock.ViewModels.Main"
     mc:Ignorable="d"
     Title="{x:Static res:AppLocalization.AppTitle}"
     Width="450"
@@ -14,6 +14,7 @@
     d:DataContext="{d:DesignInstance Type=vm:MainViewModel, IsDesignTimeCreatable=True}"
     AllowsTransparency="True"
     Background="Transparent"
+    Loaded="MainWindow_OnLoaded"
     ResizeMode="CanMinimize"
     WindowStartupLocation="CenterScreen"
     WindowStyle="None">
@@ -101,7 +102,7 @@
             <Image
                 Grid.Row="1"
                 Margin="64,32,64,32"
-                Source="/Assets/Logo.png" />
+                Source="/Resources/Assets/Logo.png" />
             <!--  Logo Image  -->
 
             <Border
