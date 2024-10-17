@@ -1,0 +1,169 @@
+﻿<Window
+    x:Class="TiDeadlock.Windows.Main.MainWindow"
+    xmlns="http://schemas.microsoft.com/winfx/2006/xaml/presentation"
+    xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
+    xmlns:d="http://schemas.microsoft.com/expression/blend/2008"
+    xmlns:mc="http://schemas.openxmlformats.org/markup-compatibility/2006"
+    xmlns:res="clr-namespace:TiDeadlock.Resources"
+    xmlns:spSpacing="clr-namespace:TiDeadlock.Extensions.StackPanelSpacing"
+    xmlns:vm="clr-namespace:TiDeadlock.ViewModel.Main"
+    mc:Ignorable="d"
+    Title="{x:Static res:AppLocalization.AppTitle}"
+    Width="450"
+    Height="650"
+    d:DataContext="{d:DesignInstance Type=vm:MainViewModel, IsDesignTimeCreatable=True}"
+    AllowsTransparency="True"
+    Background="Transparent"
+    ResizeMode="CanMinimize"
+    WindowStartupLocation="CenterScreen"
+    WindowStyle="None">
+
+    <Window.Resources>
+        <ResourceDictionary>
+            <ResourceDictionary.MergedDictionaries>
+                <ResourceDictionary Source="../../Styles/CustomButtonStyle.xaml" />
+                <ResourceDictionary Source="../../Styles/CustomTitleBarButtonStyle.xaml" />
+                <ResourceDictionary Source="../../Styles/CustomCheckBoxStyle.xaml" />
+                <ResourceDictionary Source="../../Styles/CustomGroupBoxStyle.xaml" />
+            </ResourceDictionary.MergedDictionaries>
+        </ResourceDictionary>
+    </Window.Resources>
+
+    <Border
+        Background="#313131"
+        BorderBrush="#FFEFD7"
+        BorderThickness="2"
+        CornerRadius="8">
+
+        <Grid>
+            <Grid.RowDefinitions>
+                <RowDefinition Height="Auto" />
+                <RowDefinition Height="Auto" />
+                <RowDefinition Height="Auto" />
+                <RowDefinition Height="Auto" />
+                <RowDefinition Height="*" />
+            </Grid.RowDefinitions>
+
+            <!--  TitleBar  -->
+            <Border
+                Grid.Row="0"
+                Height="32"
+                Background="#FFEFD7"
+                CornerRadius="4,4,0,0"
+                MouseDown="Border_OnMouseDown">
+
+                <Grid>
+                    <Grid.ColumnDefinitions>
+                        <ColumnDefinition Width="Auto" />
+                        <ColumnDefinition Width="*" />
+                        <ColumnDefinition Width="Auto" />
+                        <ColumnDefinition Width="Auto" />
+                    </Grid.ColumnDefinitions>
+
+                    <TextBlock
+                        Grid.Column="0"
+                        Margin="10,0"
+                        VerticalAlignment="Center"
+                        FontFamily="{StaticResource CustomFont}"
+                        FontSize="16"
+                        Foreground="#313131"
+                        Text="{x:Static res:AppLocalization.AppTitle}" />
+
+                    <Button
+                        Grid.Column="2"
+                        HorizontalAlignment="Right"
+                        Click="Minimize_Click"
+                        Foreground="Black"
+                        Style="{StaticResource CustomTitleBarButtonStyle}">
+                        <Path
+                            Data="M 0,15 H 15"
+                            Stroke="Black"
+                            StrokeThickness="2" />
+                    </Button>
+
+                    <Button
+                        Grid.Column="3"
+                        Margin="0,0,10,0"
+                        HorizontalAlignment="Right"
+                        Click="Close_Click"
+                        Foreground="Black"
+                        Style="{StaticResource CustomTitleBarButtonStyle}">
+                        <Path
+                            Data="M 0,0 L 15,15 M 15,0 L 0,15"
+                            Stroke="Black"
+                            StrokeThickness="2" />
+                    </Button>
+                </Grid>
+            </Border>
+            <!--  TitleBar  -->
+
+            <!--  Logo Image  -->
+            <Image
+                Grid.Row="1"
+                Margin="64,32,64,32"
+                Source="/Assets/Logo.png" />
+            <!--  Logo Image  -->
+
+            <Border
+                Grid.Row="2"
+                BorderBrush="#FFEFD7"
+                BorderThickness="1" />
+
+            <!--  Localization  -->
+            <GroupBox
+                Grid.Row="3"
+                Margin="8"
+                Header="{x:Static res:AppLocalization.MainWindowGroupBoxHeader}"
+                Style="{StaticResource CustomGroupBoxStyle}">
+
+                <Grid>
+                    <Grid.RowDefinitions>
+                        <RowDefinition Height="Auto" />
+                        <RowDefinition Height="Auto" />
+                        <RowDefinition Height="Auto" />
+                    </Grid.RowDefinitions>
+
+                    <StackPanel Grid.Row="0" spSpacing:Spacing.Vertical="4">
+                        <CheckBox
+                            Content="{x:Static res:AppLocalization.MainWindowCheckBoxHeroes}"
+                            IsChecked="{Binding UseEnglishForHeroes}"
+                            IsEnabled="{Binding UseEnglishForHeroesIsEnabled}"
+                            Style="{StaticResource CustomCheckBoxStyle}" />
+
+                        <CheckBox
+                            Content="{x:Static res:AppLocalization.MainWindowCheckBoxItems}"
+                            IsChecked="{Binding UseEnglishForItems}"
+                            IsEnabled="{Binding UseEnglishForItemsIsEnabled}"
+                            Style="{StaticResource CustomCheckBoxStyle}" />
+                    </StackPanel>
+
+                    <Border
+                        Grid.Row="1"
+                        Margin="0,8,0,8"
+                        BorderBrush="#FFEFD7"
+                        BorderThickness="1" />
+
+                    <StackPanel
+                        Grid.Row="2"
+                        spSpacing:Spacing.Horizontal="4"
+                        Orientation="Horizontal">
+                        <Button
+                            Width="120"
+                            Height="32"
+                            Command="{Binding TapOnPatchButtonCommand}"
+                            Content="{x:Static res:AppLocalization.MainWindowButtonPatch}"
+                            Style="{StaticResource CustomButtonStyle}" />
+
+                        <Button
+                            Width="128"
+                            Height="32"
+                            Command="{Binding TapOnResetButtonCommand}"
+                            Content="{x:Static res:AppLocalization.MainWindowButtonRestore}"
+                            Style="{StaticResource CustomButtonStyle}" />
+                    </StackPanel>
+                </Grid>
+            </GroupBox>
+            <!--  Localization  -->
+        </Grid>
+    </Border>
+</Window>
