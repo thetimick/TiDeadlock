@@ -4,8 +4,9 @@ using Microsoft.Extensions.Configuration;
 using Microsoft.Extensions.DependencyInjection;
 using Microsoft.Extensions.Hosting;
 using Serilog;
-using TiDeadlock.Application.AppHost;
 using TiDeadlock.Services;
+using TiDeadlock.Services.Config;
+using TiDeadlock.Services.Storage;
 using TiDeadlock.Services.Update;
 using TiDeadlock.Windows.Main;
 using MainViewModel = TiDeadlock.ViewModels.Main.MainViewModel;
@@ -25,17 +26,13 @@ public partial class App
         .ConfigureServices(
             collection =>
             {
-                Log.Logger = new LoggerConfiguration()
-                    .Enrich.FromLogContext()
-                    .WriteTo.File("TiDeadlock.log")
-                    .CreateLogger();
-                
+                ConfigureLogging();
                 collection.AddLogging(builder => builder.AddSerilog(dispose: true));
                 
-                collection.AddHostedService<ApplicationHostService>();
+                collection.AddHostedService<AppHostService>();
                 
                 collection.AddSingleton<IUpdateService, UpdateService>();
-                
+                collection.AddSingleton<IConfigService, ConfigService>();
                 collection.AddSingleton<IStorageService, StorageService>();
                 collection.AddSingleton<ISearchService, SearchService>();
                 collection.AddSingleton<ILocalizationService, LocalizationService>();
@@ -69,5 +66,13 @@ public partial class App
         );
 
         e.Handled = true;
+    }
+
+    private static void ConfigureLogging()
+    {
+        Log.Logger = new LoggerConfiguration()
+            .Enrich.FromLogContext()
+            .WriteTo.File("TiDeadlock.log")
+            .CreateLogger();
     }
 }

@@ -6,8 +6,9 @@
         <ImplicitUsings>enable</ImplicitUsings>
         <UseWPF>true</UseWPF>
         <Company>the_timick</Company>
-        <AssemblyVersion>1.0</AssemblyVersion>
-        <FileVersion>1.0</FileVersion>
+        <AssemblyVersion>1.1</AssemblyVersion>
+        <FileVersion>1.1</FileVersion>
+        <Authors>the_timick</Authors>
         <ApplicationIcon>Resources\Assets\Icon.ico</ApplicationIcon>
     </PropertyGroup>
     
@@ -35,10 +36,6 @@
         <XamlRuntime>Wpf</XamlRuntime>
         <SubType>Designer</SubType>
       </ApplicationDefinition>
-    </ItemGroup>
-
-    <ItemGroup>
-      <Folder Include="Extensions\" />
     </ItemGroup>
 
     <ItemGroup>
@@ -81,5 +78,9 @@
 
     <ItemGroup>
       <ProjectReference Include="..\TiDeadlock.Services\TiDeadlock.Services.csproj" />
+    </ItemGroup>
+
+    <ItemGroup>
+      <Folder Include="Extensions\" />
     </ItemGroup>
 </Project>

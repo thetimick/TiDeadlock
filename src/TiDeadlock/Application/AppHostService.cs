@@ -3,13 +3,14 @@ using Microsoft.Extensions.Configuration;
 using Microsoft.Extensions.DependencyInjection;
 using Microsoft.Extensions.Hosting;
 using TiDeadlock.Services;
+using TiDeadlock.Services.Storage;
 using TiDeadlock.Services.Update;
 using TiDeadlock.ViewModels.Main;
 using TiDeadlock.Windows.Main;
 
-namespace TiDeadlock.Application.AppHost;
+namespace TiDeadlock.Application;
 
-public class ApplicationHostService(IServiceProvider provider): IHostedService {
+public class AppHostService(IServiceProvider provider): IHostedService {
     public Task StartAsync(CancellationToken cancellationToken)
     {
         if (System.Windows.Application.Current.Windows.OfType<MainWindow>().Any())

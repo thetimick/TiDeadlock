@@ -5,7 +5,7 @@
     xmlns:d="http://schemas.microsoft.com/expression/blend/2008"
     xmlns:mc="http://schemas.openxmlformats.org/markup-compatibility/2006"
     xmlns:res="clr-namespace:TiDeadlock.Resources"
-    xmlns:spSpacing="clr-namespace:TiDeadlock.Extensions.StackPanelSpacing"
+    xmlns:spSpacing="clr-namespace:TiDeadlock.Extensions.StackPanel.Spacing"
     xmlns:vm="clr-namespace:TiDeadlock.ViewModels.Main"
     mc:Ignorable="d"
     Title="{x:Static res:AppLocalization.AppTitle}"
@@ -65,7 +65,7 @@
                         Grid.Column="0"
                         Margin="10,0"
                         VerticalAlignment="Center"
-                        FontFamily="{StaticResource CustomFont}"
+                        FontFamily="{StaticResource ForevsFont}"
                         FontSize="16"
                         Foreground="#313131"
                         Text="{x:Static res:AppLocalization.AppTitle}" />

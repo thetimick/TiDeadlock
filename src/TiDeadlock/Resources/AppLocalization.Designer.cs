@@ -139,5 +139,14 @@ namespace TiDeadlock.Resources {
                 return ResourceManager.GetString("MessageBoxInfoTitle", resourceCulture);
             }
         }
+        
+        /// <summary>
+        ///   Looks up a localized string similar to Вопрос.
+        /// </summary>
+        public static string MessageBoxQuestionTitle {
+            get {
+                return ResourceManager.GetString("MessageBoxQuestionTitle", resourceCulture);
+            }
+        }
     }
 }

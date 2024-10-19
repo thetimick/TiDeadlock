@@ -45,4 +45,7 @@
     <data name="MessageBoxDescriptionRestore" xml:space="preserve">
         <value>Восстановлен оригинальный файл локализации...</value>
     </data>
+    <data name="MessageBoxQuestionTitle" xml:space="preserve">
+        <value>Вопрос</value>
+    </data>
 </root>

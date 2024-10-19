@@ -4,6 +4,8 @@ using System.Windows;
 using Gameloop.Vdf;
 using Gameloop.Vdf.Linq;
 using Microsoft.Win32;
+using TiDeadlock.Resources;
+using TiDeadlock.Services.Storage;
 
 namespace TiDeadlock.Services;
 
@@ -23,9 +25,9 @@ public class SearchService(IStorageService storage): ISearchService
             return _cachedPath;
 
         // Если есть корректный путь в storage - отдаем
-        if (CheckExecutable(storage.Entity?.Path, storage.Entity?.DeadlockExecutable))
+        if (CheckExecutable(storage.Cached?.Path, storage.Cached?.DeadlockExecutable))
         {
-            _cachedPath = storage.Entity?.Path;
+            _cachedPath = storage.Cached?.Path;
             return _cachedPath;
         }
         
@@ -63,8 +65,8 @@ public class SearchService(IStorageService storage): ISearchService
 
             _cachedPath = Path.Combine(result.Value<string>(), "steamapps", "common", "Deadlock");
             
-            if (storage.Entity != null) 
-                storage.Entity.Path = _cachedPath;
+            if (storage.Cached != null) 
+                storage.Cached.Path = _cachedPath;
 
             return _cachedPath;
         }
@@ -73,7 +75,7 @@ public class SearchService(IStorageService storage): ISearchService
             // Пытаемся получить путь к папке напрямую, через пользователя
             MessageBox.Show(
                 "Не удалось получить путь к папке с игрой!\nПожалуйста, укажите его самостоятельно...",
-                "Информация", 
+                AppLocalization.MessageBoxInfoTitle, 
                 MessageBoxButton.OK, 
                 MessageBoxImage.Information
             );
@@ -83,7 +85,7 @@ public class SearchService(IStorageService storage): ISearchService
             {
                 MessageBox.Show(
                     "Не удалось получить путь к папке с игрой!\nПриложение будет закрыто...",
-                    "Информация", 
+                    AppLocalization.MessageBoxInfoTitle, 
                     MessageBoxButton.OK, 
                     MessageBoxImage.Information
                 );
@@ -107,12 +109,12 @@ public class SearchService(IStorageService storage): ISearchService
     {
         // Дефолтный путь
         var defaultPath = Path.Combine(Environment.GetFolderPath(Environment.SpecialFolder.ProgramFilesX86), "Steam");
-        if (CheckExecutable(defaultPath, storage.Entity?.SteamExecutable))
+        if (CheckExecutable(defaultPath, storage.Cached?.SteamExecutable))
             return defaultPath;
 
         // Путь из запущенные процессов
         var processPath = Path.GetDirectoryName(Process.GetProcesses().FirstOrDefault(process => process.ProcessName == "steam")?.MainModule?.FileName);
-        if (CheckExecutable(processPath, storage.Entity?.SteamExecutable))
+        if (CheckExecutable(processPath, storage.Cached?.SteamExecutable))
             return processPath;
 
         return null;
@@ -127,11 +129,10 @@ public class SearchService(IStorageService storage): ISearchService
                 Title = "Укажите путь к папке с Deadlock",
                 Multiselect = false
             };
-
-            if (dialog.ShowDialog() == true && CheckExecutable(dialog.FolderName, storage.Entity?.DeadlockExecutable))
+            if (dialog.ShowDialog() == true && CheckExecutable(dialog.FolderName, storage.Cached?.DeadlockExecutable))
                 return dialog.FolderName;
             
-            if (MessageBox.Show("Путь указан неверно!\nХотите повторить?", "Вопрос", MessageBoxButton.YesNo, MessageBoxImage.Question) != MessageBoxResult.Yes) 
+            if (MessageBox.Show("Путь указан неверно!\nХотите повторить?", AppLocalization.MessageBoxQuestionTitle, MessageBoxButton.YesNo, MessageBoxImage.Question) != MessageBoxResult.Yes) 
                 break;
         } while (true);
 

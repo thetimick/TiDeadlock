@@ -8,25 +8,29 @@ namespace TiDeadlock.Services.Update;
 
 public interface IUpdateService
 {
+    UpdateEntity? Cached { get; }
     Task UpdateAsync();
 }
 
 public class UpdateService(ILogger<UpdateService> logger): IUpdateService
 {
+    public UpdateEntity? Cached { get; private set; }
+    
     private const string UpdateConfigUrl = "https://raw.githubusercontent.com/thetimick/PublicStorage/refs/heads/main/TD/Configs/update.json";
     private const string NewFileName = "new.exe";
     
     public async Task UpdateAsync()
     {
-        logger.LogInformation("UpdateAsync - Start");
+        logger.LogInformation("[UpdateAsync] Started");
         
-        var config = await ObtainUpdateConfigAsync();
+        var config = await ObtainConfigAsync();
         var appVersion = GetCurrentVersion();
         
         if (config is null || appVersion is null)
             return;
-        
-        logger.LogInformation("UpdateAsync - RemoteConfig = {RemoteUpdateConfig}, AppVersion = {AppVersion}", config, appVersion);
+
+        logger.LogInformation("[UpdateAsync] Config = {config}, AppVersion = {appVersion}", config.ToString(), appVersion);
+        Cached = config;
 
         if (appVersion < config.CurrentVersion.Version && config.CurrentVersion.Link != string.Empty)
         {
@@ -35,15 +39,22 @@ public class UpdateService(ILogger<UpdateService> logger): IUpdateService
                 RestartApp();
         }
         
-        logger.LogInformation("UpdateAsync - Stop");
+        logger.LogInformation("[UpdateAsync] Finished");
     }
 
-    private static async Task<UpdateEntity?> ObtainUpdateConfigAsync()
+    private static async Task<UpdateEntity?> ObtainConfigAsync()
     {
         using var client = new HttpClient();
         var response = await client.GetAsync(UpdateConfigUrl);
         var content = await response.Content.ReadAsStringAsync();
         return JsonSerializer.Deserialize<UpdateEntity>(content);
+    }
+    
+    private static double? GetCurrentVersion()
+    {
+        if (Assembly.GetExecutingAssembly().GetName().Version is { } version)
+            return double.Parse($"{version.Major},{version.Minor}");
+        return null;
     }
 
     private static async Task ObtainFile(string url)
@@ -68,12 +79,5 @@ public class UpdateService(ILogger<UpdateService> logger): IUpdateService
                 UseShellExecute = false
             }
         );
-    }
-
-    private static double? GetCurrentVersion()
-    {
-        if (Assembly.GetExecutingAssembly().GetName().Version is { } version)
-            return double.Parse($"{version.Major},{version.Minor}");
-        return null;
     }
 }

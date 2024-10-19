@@ -2,7 +2,7 @@
 using System.Windows.Controls;
 using JetBrains.Annotations;
 
-namespace TiDeadlock.Extensions.StackPanelSpacing;
+namespace TiDeadlock.Extensions.StackPanel.Spacing;
 
 public class MarginSetter
 {
