@@ -1,47 +1,69 @@
-using System.Windows.Threading;
 using Microsoft.Extensions.Configuration;
 using Microsoft.Extensions.DependencyInjection;
 using Microsoft.Extensions.Hosting;
 using TiDeadlock.Services;
+using TiDeadlock.Services.Config;
+using TiDeadlock.Services.RunLoop;
+using TiDeadlock.Services.Search;
 using TiDeadlock.Services.Storage;
 using TiDeadlock.Services.Update;
 using TiDeadlock.ViewModels.Main;
 using TiDeadlock.Windows.Main;
+// ReSharper disable InvertIf
 
 namespace TiDeadlock.Application;
 
-public class AppHostService(IServiceProvider provider): IHostedService {
-    public Task StartAsync(CancellationToken cancellationToken)
+public partial class AppHostService(IConfiguration configuration, IServiceProvider provider): IHostedService {
+    public async Task StartAsync(CancellationToken cancellationToken)
     {
         if (System.Windows.Application.Current.Windows.OfType<MainWindow>().Any())
-            return Task.CompletedTask;
+            return;
 
-        Task.Factory.StartNew(
-            async () =>
-            {
-                if (provider.GetService<IConfiguration>()?["skipUpdate"] != "true") 
-                    await provider.GetRequiredService<IUpdateService>().UpdateAsync();
-                
-                await provider.GetRequiredService<IStorageService>().ObtainAsync();
-                
-                await System.Windows.Application.Current.Dispatcher.BeginInvoke(
-                    DispatcherPriority.Normal, 
-                    () =>
-                    {
-                        provider.GetService<MainViewModel>()?.OnLoaded();
-                        provider.GetService<MainWindow>()?.Show();
-                    }
-                );
-            }, 
-            cancellationToken
-        );
-        
-        return Task.CompletedTask;
+        if (await PrepareRequiredServicesAsync() == false)
+        {
+            System.Windows.Application.Current.Shutdown();
+            return;
+        }
+
+        if (configuration["service"] != "true")
+        {
+            // Программа запущена по умолчанию
+            provider.GetService<MainViewModel>()?.OnLoaded();
+            provider.GetService<MainWindow>()?.Show();
+        }
+        else
+        {
+            // Программа запущена как сервис
+            provider.GetService<IRunLoopService>()?.Run();
+        }
     }
 
-    public Task StopAsync(CancellationToken cancellationToken)
+    public async Task StopAsync(CancellationToken cancellationToken)
     {
-        provider.GetRequiredService<IStorageService>().SaveAsync();
-        return Task.CompletedTask;
+        await provider.GetRequiredService<IStorageService>().SaveAsync();
+    }
+}
+
+public partial class AppHostService
+{
+    private async Task<bool> PrepareRequiredServicesAsync()
+    {
+        // Проверяем обновления
+        if (configuration["skipUpdate"] != "true") 
+            await provider.GetRequiredService<IUpdateService>().UpdateAsync();
+        
+        // Получаем Storage
+        await provider.GetRequiredService<IStorageService>().ObtainAsync();
+
+        // Получаем путь до папки с Deadlock
+        if (await provider.GetRequiredService<ISearchService>().ObtainAsync() == null)
+        {
+            System.Windows.Application.Current.Shutdown();
+            return false;
+        }
+
+        await provider.GetRequiredService<IConfigService>().ObtainAsync();
+        
+        return true;
     }
 }

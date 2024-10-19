@@ -1,6 +1,7 @@
 ﻿using System.Diagnostics;
 using System.Reflection;
 using System.Text.Json;
+using System.Windows;
 using Microsoft.Extensions.Logging;
 using TiDeadlock.Entities.Update;
 
@@ -16,8 +17,10 @@ public class UpdateService(ILogger<UpdateService> logger): IUpdateService
 {
     public UpdateEntity? Cached { get; private set; }
     
-    private const string UpdateConfigUrl = "https://raw.githubusercontent.com/thetimick/PublicStorage/refs/heads/main/TD/Configs/update.json";
-    private const string NewFileName = "new.exe";
+    private const string UpdateConfigUrl = 
+        "https://raw.githubusercontent.com/thetimick/PublicStorage/refs/heads/main/TD/Configs/update.json";
+    private const string NewFileName = 
+        "new.exe";
     
     public async Task UpdateAsync()
     {
@@ -36,7 +39,16 @@ public class UpdateService(ILogger<UpdateService> logger): IUpdateService
         {
             await ObtainFile(config.CurrentVersion.Link);
             if (File.Exists(Path.Combine(AppContext.BaseDirectory, NewFileName)))
+            {
+                MessageBox.Show(
+                    $"Доступно обновление TiDeadlock (v.{config.CurrentVersion.Version})!\nПрограмма будет обновлена автоматически...", 
+                    "Обновление", 
+                    MessageBoxButton.OK,
+                    MessageBoxImage.Warning
+                );
+                
                 RestartApp();
+            }
         }
         
         logger.LogInformation("[UpdateAsync] Finished");

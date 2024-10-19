@@ -1,8 +1,8 @@
-﻿using System.IO;
-using Gameloop.Vdf;
+﻿using Gameloop.Vdf;
 using Gameloop.Vdf.Linq;
+using TiDeadlock.Services.Search;
 
-namespace TiDeadlock.Services;
+namespace TiDeadlock.Services.Localization;
 
 public interface ILocalizationService
 {
@@ -27,7 +27,7 @@ public class LocalizationService(ISearchService search): ILocalizationService
     
     public Localization? ObtainCurrentLocalizationForHeroes()
     {
-        var path = search.GetPathForDeadlock();
+        var path = search.ObtainAsync().Result;
         ArgumentException.ThrowIfNullOrEmpty(path);
         
         var russianFile = File.ReadAllText(Path.Combine(path, Russian));
@@ -45,7 +45,7 @@ public class LocalizationService(ISearchService search): ILocalizationService
 
     public Localization? ObtainCurrentLocalizationForItems()
     {
-        var path = search.GetPathForDeadlock();
+        var path = search.ObtainAsync().Result;
         ArgumentException.ThrowIfNullOrEmpty(path);
         
         var russianFile = File.ReadAllText(Path.Combine(path, Russian));
@@ -68,7 +68,7 @@ public class LocalizationService(ISearchService search): ILocalizationService
         
         try
         {
-            var path = search.GetPathForDeadlock();
+            var path = search.ObtainAsync().Result;
             ArgumentException.ThrowIfNullOrEmpty(path);
             
             if (localization == Localization.Russian)
@@ -126,7 +126,7 @@ public class LocalizationService(ISearchService search): ILocalizationService
         
         try
         {
-            var path = search.GetPathForDeadlock();
+            var path = search.ObtainAsync().Result;
             ArgumentException.ThrowIfNullOrEmpty(path);
             
             if (localization == Localization.Russian)

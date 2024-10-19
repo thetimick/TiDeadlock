@@ -1,4 +1,5 @@
-﻿using System.Text.Json;
+﻿using System.Diagnostics.CodeAnalysis;
+using System.Text.Json;
 using TiDeadlock.Entities.Storage;
 
 namespace TiDeadlock.Services.Storage;
@@ -15,8 +16,9 @@ public interface IStorageService
 public class StorageService: IStorageService
 {
     private const string StorageFilename = "TiDeadlock.storage.json";
-    
+
     public StorageEntity? Cached { get; private set; }
+    
     public bool IsCached => Cached != null;
 
     private readonly JsonSerializerOptions _options = new() { WriteIndented = true }; 
@@ -24,7 +26,7 @@ public class StorageService: IStorageService
     public async Task<StorageEntity> ObtainAsync()
     {
         if (IsCached)
-            return Cached;
+            return Cached!;
         
         try
         {

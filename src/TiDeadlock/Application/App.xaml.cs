@@ -6,16 +6,19 @@ using Microsoft.Extensions.Hosting;
 using Serilog;
 using TiDeadlock.Services;
 using TiDeadlock.Services.Config;
+using TiDeadlock.Services.Localization;
+using TiDeadlock.Services.RunLoop;
+using TiDeadlock.Services.Search;
 using TiDeadlock.Services.Storage;
 using TiDeadlock.Services.Update;
+using TiDeadlock.ViewModels.Main;
 using TiDeadlock.Windows.Main;
-using MainViewModel = TiDeadlock.ViewModels.Main.MainViewModel;
 
 namespace TiDeadlock.Application;
 
 public partial class App
 {
-    private static readonly IHost AppHost = Host.CreateDefaultBuilder()
+    public static readonly IHost AppHost = Host.CreateDefaultBuilder()
         .ConfigureAppConfiguration(
             builder =>
             {
@@ -34,6 +37,7 @@ public partial class App
                 collection.AddSingleton<IUpdateService, UpdateService>();
                 collection.AddSingleton<IConfigService, ConfigService>();
                 collection.AddSingleton<IStorageService, StorageService>();
+                collection.AddSingleton<IRunLoopService, RunLoopService>();
                 collection.AddSingleton<ISearchService, SearchService>();
                 collection.AddSingleton<ILocalizationService, LocalizationService>();
                 
@@ -43,14 +47,14 @@ public partial class App
         )
         .Build();
     
-    private void OnStartup(object sender, StartupEventArgs e)
+    private async void OnStartup(object sender, StartupEventArgs e)
     {
-        AppHost.Start();
+        await AppHost.StartAsync();
     }
     
-    private void OnExit(object sender, ExitEventArgs e)
+    private async void OnExit(object sender, ExitEventArgs e)
     {
-        AppHost.StopAsync().Wait();
+        await AppHost.StopAsync();
         AppHost.Dispose();
     }
     

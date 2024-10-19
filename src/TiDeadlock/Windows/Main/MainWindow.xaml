@@ -14,7 +14,6 @@
     d:DataContext="{d:DesignInstance Type=vm:MainViewModel, IsDesignTimeCreatable=True}"
     AllowsTransparency="True"
     Background="Transparent"
-    Loaded="MainWindow_OnLoaded"
     ResizeMode="CanMinimize"
     WindowStartupLocation="CenterScreen"
     WindowStyle="None">
@@ -160,6 +159,14 @@
                             Height="32"
                             Command="{Binding TapOnResetButtonCommand}"
                             Content="{x:Static res:AppLocalization.MainWindowButtonRestore}"
+                            Style="{StaticResource CustomButtonStyle}" />
+
+                        <Border BorderBrush="#FFEFD7" BorderThickness="1" />
+
+                        <Button
+                            Width="128"
+                            Height="32"
+                            Content="Сервис"
                             Style="{StaticResource CustomButtonStyle}" />
                     </StackPanel>
                 </Grid>

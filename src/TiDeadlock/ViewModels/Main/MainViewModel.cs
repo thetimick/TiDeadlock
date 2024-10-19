@@ -5,6 +5,7 @@ using CommunityToolkit.Mvvm.Input;
 using Microsoft.Extensions.Logging;
 using TiDeadlock.Resources;
 using TiDeadlock.Services;
+using TiDeadlock.Services.Localization;
 
 namespace TiDeadlock.ViewModels.Main;
 
@@ -28,11 +29,11 @@ public partial class MainViewModel(ILogger<MainViewModel> logger, ILocalizationS
     [NotifyCanExecuteChangedFor(nameof(TapOnPatchButtonCommand))]
     private bool _useEnglishForItems;
     
-    public override void OnLoaded()
+    public void OnLoaded()
     {
-        logger.LogInformation("OnLoaded - Start");
+        logger.LogInformation("[OnLoaded] Start");
         Prepare();
-        logger.LogInformation("OnLoaded - Stop");
+        logger.LogInformation("[OnLoaded] Finish");
     }
 
     protected override void OnPropertyChanged(PropertyChangedEventArgs e)
@@ -40,16 +41,16 @@ public partial class MainViewModel(ILogger<MainViewModel> logger, ILocalizationS
         base.OnPropertyChanged(e);
         
         logger.LogInformation(
-            "OnPropertyChanged with EventArgs: {PropertyName}, Value = {PropertyValue}", 
+            "[OnPropertyChanged] EventArgs: {PropertyName}, Value = {PropertyValue}", 
             e.PropertyName, 
-            GetType().GetProperty(e.PropertyName ?? "")?.GetValue(this)
+            GetType().GetProperty(e.PropertyName ?? string.Empty)?.GetValue(this)
         );
     }
 
     [RelayCommand(CanExecute = nameof(CanExecuteResetButton))]
     private void TapOnResetButton()
     {
-        logger.LogInformation("TapOnResetButton - Start");
+        logger.LogInformation("[TapOnResetButton] Start");
         
         if (!UseEnglishForHeroesIsEnabled)
             localizationService.ChangeLocalizationForHeroes(LocalizationService.Localization.Russian);
@@ -58,20 +59,20 @@ public partial class MainViewModel(ILogger<MainViewModel> logger, ILocalizationS
         
         Prepare();
         
-        logger.LogInformation("TapOnResetButton - Stop");
-        
         MessageBox.Show(
             AppLocalization.MessageBoxDescriptionRestore, 
             AppLocalization.MessageBoxInfoTitle, 
             MessageBoxButton.OK,
             MessageBoxImage.Information
         );
+        
+        logger.LogInformation("[TapOnResetButton] Finish");
     }
     
     [RelayCommand(CanExecute = nameof(CanExecutePatchButton))]
     private void TapOnPatchButton()
     {
-        logger.LogInformation("TapOnPatchButton - Start");
+        logger.LogInformation("[TapOnPatchButton] Start");
         
         if (UseEnglishForHeroes && UseEnglishForHeroesIsEnabled) 
             localizationService.ChangeLocalizationForHeroes(LocalizationService.Localization.English);
@@ -80,19 +81,19 @@ public partial class MainViewModel(ILogger<MainViewModel> logger, ILocalizationS
         
         Prepare();
         
-        logger.LogInformation("TapOnPatchButton - Stop");
-        
         MessageBox.Show(
             AppLocalization.MessageBoxDescriptionPatch, 
             AppLocalization.MessageBoxInfoTitle, 
             MessageBoxButton.OK, 
             MessageBoxImage.Information
         );
+        
+        logger.LogInformation("[apOnPatchButton] Finish");
     }
     
     private void Prepare()
     {
-        logger.LogInformation("Prepare - Start");
+        logger.LogInformation("[Prepare] Start");
         
         var currentLocalizationForHeroes = localizationService.ObtainCurrentLocalizationForHeroes();
         UseEnglishForHeroesIsEnabled = currentLocalizationForHeroes == LocalizationService.Localization.Russian;
@@ -102,7 +103,7 @@ public partial class MainViewModel(ILogger<MainViewModel> logger, ILocalizationS
         UseEnglishForItemsIsEnabled = currentLocalizationForItems == LocalizationService.Localization.Russian;
         UseEnglishForItems = !UseEnglishForItemsIsEnabled;
         
-        logger.LogInformation("Prepare - Stop");
+        logger.LogInformation("[Prepare] Finish");
     }
 
     private bool CanExecuteResetButton()

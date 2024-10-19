@@ -1,20 +1,20 @@
 ﻿using System.Windows;
 using System.Windows.Input;
+using Microsoft.Extensions.Logging;
 using TiDeadlock.ViewModels.Main;
 
 namespace TiDeadlock.Windows.Main;
 
 public partial class MainWindow
 {
-    public MainWindow(MainViewModel viewModel)
-    {
-        DataContext = viewModel;
-        InitializeComponent();
-    }
+    private readonly ILogger<MainWindow> _logger;
     
-    private void MainWindow_OnLoaded(object? sender, EventArgs e)
+    public MainWindow(ILogger<MainWindow> logger, MainViewModel viewModel)
     {
-        // ((MainViewModel)DataContext).OnLoaded();
+        _logger = logger;
+        DataContext = viewModel;
+        
+        InitializeComponent();
     }
     
     private void Border_OnMouseDown(object sender, MouseButtonEventArgs e)
@@ -25,11 +25,13 @@ public partial class MainWindow
     
     private void Minimize_Click(object sender, RoutedEventArgs e)
     {
+        _logger.LogInformation("Minimizing...");
         WindowState = WindowState.Minimized;
     }
     
     private void Close_Click(object sender, RoutedEventArgs e)
     {
+        _logger.LogInformation("Closing...");
         Close();
     }
 }

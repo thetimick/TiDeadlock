@@ -8,38 +8,35 @@ public interface IConfigService
     ConfigEntity? Cached { get; }
     bool IsCached { get; }
     
-    Task<bool> ObtainAsync();
+    Task<ConfigEntity> ObtainAsync();
 }
 
 public class ConfigService: IConfigService
 {
-    private const string Url = "https://raw.githubusercontent.com/thetimick/PublicStorage/refs/heads/main/TD/Configs/config.json";
+    private const string Url = 
+        "https://raw.githubusercontent.com/thetimick/PublicStorage/refs/heads/main/TD/Configs/config.json";
     
     public ConfigEntity? Cached { get; private set; }
     public bool IsCached => Cached != null;
     
-    public async Task<bool> ObtainAsync()
+    public async Task<ConfigEntity> ObtainAsync()
     {
         if (IsCached)
-            return true;
-
-        var config = await ObtainConfigAsync();
-        if (config == null) 
-            return false;
+            return Cached!;
         
-        Cached = config;
-        return true;
+        Cached = await ObtainConfigAsync();
+        return Cached;
     }
     
-    private static async Task<ConfigEntity?> ObtainConfigAsync()
+    private static async Task<ConfigEntity> ObtainConfigAsync()
     {
         using var client = new HttpClient();
         
         var response = await client.GetAsync(Url);
         if (!response.IsSuccessStatusCode)
-            return null;
+            return new ConfigEntity();
         
         var content = await response.Content.ReadAsStringAsync();
-        return JsonSerializer.Deserialize<ConfigEntity>(content);
+        return JsonSerializer.Deserialize<ConfigEntity>(content) ?? new ConfigEntity();
     }
 }

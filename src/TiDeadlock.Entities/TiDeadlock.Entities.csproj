@@ -1,9 +1,12 @@
 ﻿<Project Sdk="Microsoft.NET.Sdk">
-
     <PropertyGroup>
         <TargetFramework>net8.0</TargetFramework>
         <ImplicitUsings>enable</ImplicitUsings>
         <Nullable>enable</Nullable>
+		
+		<Company>the_timick</Company>
+		<AssemblyVersion>1.1</AssemblyVersion>
+		<FileVersion>1.1</FileVersion>
+		<Authors>the_timick</Authors>
     </PropertyGroup>
-
 </Project>

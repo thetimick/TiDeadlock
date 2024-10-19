@@ -2,7 +2,4 @@
 
 namespace TiDeadlock.ViewModels;
 
-public abstract class ViewModelBase: ObservableObject
-{
-    public abstract void OnLoaded();
-}
+public abstract class ViewModelBase: ObservableObject;
