@@ -132,6 +132,24 @@ namespace TiDeadlock.Resources {
         }
         
         /// <summary>
+        ///   Looks up a localized string similar to Некорректный путь к папке с игрой....
+        /// </summary>
+        public static string MessageBoxDescriptionUncorrectPath {
+            get {
+                return ResourceManager.GetString("MessageBoxDescriptionUncorrectPath", resourceCulture);
+            }
+        }
+        
+        /// <summary>
+        ///   Looks up a localized string similar to Ошибка.
+        /// </summary>
+        public static string MessageBoxErrorTitle {
+            get {
+                return ResourceManager.GetString("MessageBoxErrorTitle", resourceCulture);
+            }
+        }
+        
+        /// <summary>
         ///   Looks up a localized string similar to Информация.
         /// </summary>
         public static string MessageBoxInfoTitle {

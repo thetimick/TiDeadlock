@@ -1,7 +1,8 @@
+using System.Windows;
 using Microsoft.Extensions.Configuration;
 using Microsoft.Extensions.DependencyInjection;
 using Microsoft.Extensions.Hosting;
-using TiDeadlock.Services;
+using TiDeadlock.Resources;
 using TiDeadlock.Services.Config;
 using TiDeadlock.Services.RunLoop;
 using TiDeadlock.Services.Search;
@@ -9,6 +10,7 @@ using TiDeadlock.Services.Storage;
 using TiDeadlock.Services.Update;
 using TiDeadlock.ViewModels.Main;
 using TiDeadlock.Windows.Main;
+
 // ReSharper disable InvertIf
 
 namespace TiDeadlock.Application;
@@ -52,17 +54,22 @@ public partial class AppHostService
         if (configuration["skipUpdate"] != "true") 
             await provider.GetRequiredService<IUpdateService>().UpdateAsync();
         
-        // Получаем Storage
         await provider.GetRequiredService<IStorageService>().ObtainAsync();
-
+        await provider.GetRequiredService<IConfigService>().ObtainAsync();
+        
         // Получаем путь до папки с Deadlock
         if (await provider.GetRequiredService<ISearchService>().ObtainAsync() == null)
         {
+            MessageBox.Show(
+                AppLocalization.MessageBoxDescriptionUncorrectPath, 
+                AppLocalization.MessageBoxErrorTitle, 
+                MessageBoxButton.OK,
+                MessageBoxImage.Error
+            );
+            
             System.Windows.Application.Current.Shutdown();
             return false;
         }
-
-        await provider.GetRequiredService<IConfigService>().ObtainAsync();
         
         return true;
     }

@@ -4,6 +4,7 @@ using Microsoft.Extensions.Configuration;
 using Microsoft.Extensions.DependencyInjection;
 using Microsoft.Extensions.Hosting;
 using Serilog;
+using TiDeadlock.Resources;
 using TiDeadlock.Services;
 using TiDeadlock.Services.Config;
 using TiDeadlock.Services.Localization;
@@ -60,11 +61,9 @@ public partial class App
     
     private void OnDispatcherUnhandledException(object sender, DispatcherUnhandledExceptionEventArgs e)
     {
-        AppHost.Services.GetService<ILogger>()?.Fatal(e.Exception, "FatalError!");
-        
         MessageBox.Show(
             $"{e.Exception.Message}\n\n{string.Join("", e.Exception.StackTrace?.Take(800) ?? [])}", 
-            "FatalError!", 
+            AppLocalization.MessageBoxErrorTitle, 
             MessageBoxButton.OK, 
             MessageBoxImage.Error
         );

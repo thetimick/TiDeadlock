@@ -2,6 +2,7 @@
 using Gameloop.Vdf;
 using Gameloop.Vdf.Linq;
 using Microsoft.Win32;
+using TiDeadlock.Services.Config;
 using TiDeadlock.Services.Storage;
 
 // ReSharper disable InvertIf
@@ -16,7 +17,7 @@ public interface ISearchService
     Task<string?> ObtainAsync();
 }
 
-public class SearchService(IStorageService storage): ISearchService
+public class SearchService(IStorageService storage, IConfigService configService): ISearchService
 {
     public string? Cached { get; private set; }
     public bool IsCached => Cached != null;
@@ -26,9 +27,9 @@ public class SearchService(IStorageService storage): ISearchService
         // Если есть данные в кеше - отдаем
         if (IsCached)
             return Cached;
-
+        
         // Если есть корректный путь в storage - отдаем
-        if (CheckExecutable(storage.Cached?.Path, storage.Cached?.DeadlockExecutable))
+        if (CheckExecutable(storage.Cached?.Path, configService.Cached?.DeadlockExecutable))
         {
             Cached = storage.Cached?.Path;
             return Cached;
@@ -36,7 +37,7 @@ public class SearchService(IStorageService storage): ISearchService
 
         // Сохраненного пути не найдено - ищем его в libraryfolders.vdf
         var path = await GetPathFromLibraryFolders();
-        if (CheckExecutable(path, storage.Cached?.DeadlockExecutable))
+        if (CheckExecutable(path, configService.Cached?.DeadlockExecutable))
         {
             Cached = path;
             if (storage.Cached != null) 
@@ -60,12 +61,12 @@ public class SearchService(IStorageService storage): ISearchService
     {
         // Дефолтный путь
         var defaultPath = Path.Combine(Environment.GetFolderPath(Environment.SpecialFolder.ProgramFilesX86), "Steam");
-        if (CheckExecutable(defaultPath, storage.Cached?.SteamExecutable))
+        if (CheckExecutable(defaultPath, configService.Cached?.SteamExecutable))
             return defaultPath;
 
         // Путь из запущенные процессов
         var processPath = Path.GetDirectoryName(Process.GetProcesses().FirstOrDefault(process => process.ProcessName == "steam")?.MainModule?.FileName);
-        return CheckExecutable(processPath, storage.Cached?.SteamExecutable) 
+        return CheckExecutable(processPath, configService.Cached?.SteamExecutable) 
             ? processPath 
             : null;
     }
@@ -107,7 +108,7 @@ public class SearchService(IStorageService storage): ISearchService
             Multiselect = false
         };
         
-        return dialog.ShowDialog() == true && CheckExecutable(dialog.FolderName, storage.Cached?.DeadlockExecutable) 
+        return dialog.ShowDialog() == true && CheckExecutable(dialog.FolderName, configService.Cached?.DeadlockExecutable) 
             ? dialog.FolderName 
             : null;
     }

@@ -4,7 +4,6 @@ using CommunityToolkit.Mvvm.ComponentModel;
 using CommunityToolkit.Mvvm.Input;
 using Microsoft.Extensions.Logging;
 using TiDeadlock.Resources;
-using TiDeadlock.Services;
 using TiDeadlock.Services.Localization;
 
 namespace TiDeadlock.ViewModels.Main;
@@ -29,10 +28,10 @@ public partial class MainViewModel(ILogger<MainViewModel> logger, ILocalizationS
     [NotifyCanExecuteChangedFor(nameof(TapOnPatchButtonCommand))]
     private bool _useEnglishForItems;
     
-    public void OnLoaded()
+    public async Task OnLoaded()
     {
         logger.LogInformation("[OnLoaded] Start");
-        Prepare();
+        await Prepare();
         logger.LogInformation("[OnLoaded] Finish");
     }
 
@@ -48,16 +47,13 @@ public partial class MainViewModel(ILogger<MainViewModel> logger, ILocalizationS
     }
 
     [RelayCommand(CanExecute = nameof(CanExecuteResetButton))]
-    private void TapOnResetButton()
+    private async Task TapOnResetButton()
     {
         logger.LogInformation("[TapOnResetButton] Start");
+
+        await localizationService.RestoreAsync();
         
-        if (!UseEnglishForHeroesIsEnabled)
-            localizationService.ChangeLocalizationForHeroes(LocalizationService.Localization.Russian);
-        if (!UseEnglishForItemsIsEnabled)
-            localizationService.ChangeLocalizationForItems(LocalizationService.Localization.Russian);
-        
-        Prepare();
+        await Prepare();
         
         MessageBox.Show(
             AppLocalization.MessageBoxDescriptionRestore, 
@@ -70,16 +66,16 @@ public partial class MainViewModel(ILogger<MainViewModel> logger, ILocalizationS
     }
     
     [RelayCommand(CanExecute = nameof(CanExecutePatchButton))]
-    private void TapOnPatchButton()
+    private async Task TapOnPatchButton()
     {
         logger.LogInformation("[TapOnPatchButton] Start");
         
         if (UseEnglishForHeroes && UseEnglishForHeroesIsEnabled) 
-            localizationService.ChangeLocalizationForHeroes(LocalizationService.Localization.English);
+            await localizationService.ChangeLocalizationForHeroesAsync(LocalizationService.Localization.English);
         if (UseEnglishForItems && UseEnglishForItemsIsEnabled) 
-            localizationService.ChangeLocalizationForItems(LocalizationService.Localization.English);
+            await localizationService.ChangeLocalizationForItemsAsync(LocalizationService.Localization.English);
         
-        Prepare();
+        await Prepare();
         
         MessageBox.Show(
             AppLocalization.MessageBoxDescriptionPatch, 
@@ -91,15 +87,15 @@ public partial class MainViewModel(ILogger<MainViewModel> logger, ILocalizationS
         logger.LogInformation("[apOnPatchButton] Finish");
     }
     
-    private void Prepare()
+    private async Task Prepare()
     {
         logger.LogInformation("[Prepare] Start");
         
-        var currentLocalizationForHeroes = localizationService.ObtainCurrentLocalizationForHeroes();
+        var currentLocalizationForHeroes = await localizationService.ObtainLocalizationForHeroesAsync();
         UseEnglishForHeroesIsEnabled = currentLocalizationForHeroes == LocalizationService.Localization.Russian;
         UseEnglishForHeroes = !UseEnglishForHeroesIsEnabled;
         
-        var currentLocalizationForItems = localizationService.ObtainCurrentLocalizationForItems();
+        var currentLocalizationForItems = await localizationService.ObtainLocalizationForItemsAsync();
         UseEnglishForItemsIsEnabled = currentLocalizationForItems == LocalizationService.Localization.Russian;
         UseEnglishForItems = !UseEnglishForItemsIsEnabled;
         

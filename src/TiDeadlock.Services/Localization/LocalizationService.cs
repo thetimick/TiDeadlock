@@ -1,179 +1,153 @@
 ﻿using Gameloop.Vdf;
 using Gameloop.Vdf.Linq;
+using TiDeadlock.Entities.Config;
+using TiDeadlock.Services.Config;
 using TiDeadlock.Services.Search;
 
 namespace TiDeadlock.Services.Localization;
 
 public interface ILocalizationService
 {
-    LocalizationService.Localization? ObtainCurrentLocalizationForHeroes();
-    LocalizationService.Localization? ObtainCurrentLocalizationForItems();
+    Task<LocalizationService.Localization> ObtainLocalizationForHeroesAsync();
+    Task<LocalizationService.Localization> ObtainLocalizationForItemsAsync();
     
-    bool ChangeLocalizationForHeroes(LocalizationService.Localization localization);
-    bool ChangeLocalizationForItems(LocalizationService.Localization localization);
+    Task ChangeLocalizationForHeroesAsync(LocalizationService.Localization localization);
+    Task ChangeLocalizationForItemsAsync(LocalizationService.Localization localization);
+
+    Task RestoreAsync();
 }
 
-public class LocalizationService(ISearchService search): ILocalizationService
-{
+public class LocalizationService(
+    IConfigService configService,
+    ISearchService searchService
+): ILocalizationService {
     public enum Localization
     {
         English,
-        Russian
+        Russian,
+        Unknown
     }
-
-    private const string English = @"game\citadel\resource\localization\citadel_gc\citadel_gc_english.txt";
-    private const string Russian = @"game\citadel\resource\localization\citadel_gc\citadel_gc_russian.txt";
-    private const string RussianBackup = @"game\citadel\resource\localization\citadel_gc\citadel_gc_russian.txt.bak";
     
-    public Localization? ObtainCurrentLocalizationForHeroes()
+    public async Task<Localization> ObtainLocalizationForHeroesAsync()
     {
-        var path = search.ObtainAsync().Result;
-        ArgumentException.ThrowIfNullOrEmpty(path);
-        
-        var russianFile = File.ReadAllText(Path.Combine(path, Russian));
-        var russian = VdfConvert.Deserialize(russianFile);
-        if (russian.Value["Tokens"]?["hero_mirage"] is not VValue mirage) 
-            return null;
-
-        return mirage.Value switch
-        {
-            "Mirage" => Localization.English,
-            "Мираж" => Localization.Russian,
-            _ => null
-        };
+        var config = await configService.ObtainAsync();
+        return await ObtainLocalizationAsync(config.Localization.CheckingHeroes);
     }
 
-    public Localization? ObtainCurrentLocalizationForItems()
+    public async Task<Localization> ObtainLocalizationForItemsAsync()
     {
-        var path = search.ObtainAsync().Result;
-        ArgumentException.ThrowIfNullOrEmpty(path);
-        
-        var russianFile = File.ReadAllText(Path.Combine(path, Russian));
-        var russian = VdfConvert.Deserialize(russianFile);
-        if (russian.Value["Tokens"]?["upgrade_damage_recycler"] is not VValue leech) 
-            return null;
-
-        return leech.Value switch
-        {
-            "Leech" => Localization.English,
-            "Кровопийца" => Localization.Russian,
-            _ => null
-        };
+        var config = await configService.ObtainAsync();
+        return await ObtainLocalizationAsync(config.Localization.CheckingItems);
     }
 
-    public bool ChangeLocalizationForHeroes(Localization localization)
+    public async Task ChangeLocalizationForHeroesAsync(Localization localization)
     {
-        if (ObtainCurrentLocalizationForHeroes() == localization)
-            return false;
-        
-        try
-        {
-            var path = search.ObtainAsync().Result;
-            ArgumentException.ThrowIfNullOrEmpty(path);
-            
-            if (localization == Localization.Russian)
-            {
-                File.Delete(Path.Combine(path, Russian));
-                File.Copy(Path.Combine(path, RussianBackup), Path.Combine(path, Russian));
-                File.Delete(Path.Combine(path, RussianBackup));
-                return true;
-            }
-            
-            var englishFile = File.ReadAllText(Path.Combine(path, English));
-            var russianFile = File.ReadAllText(Path.Combine(path, Russian));
-
-            var english = VdfConvert.Deserialize(englishFile);
-            var russian = VdfConvert.Deserialize(russianFile);
-
-            var heroesForEnglish = english.Value["Tokens"]
-                ?.Where(token => (token as VProperty)?.Key.StartsWith("hero_") ?? false);
-
-            var heroesForRussian = russian.Value["Tokens"]
-                ?.Where(token => (token as VProperty)?.Key.StartsWith("hero_") ?? false);
-
-            var russianTokens = russian.Value["Tokens"];
-
-            ArgumentNullException.ThrowIfNull(heroesForEnglish);
-            ArgumentNullException.ThrowIfNull(heroesForRussian);
-            ArgumentNullException.ThrowIfNull(russianTokens);
-
-            foreach (var hero in heroesForEnglish)
-            {
-                if (hero is not VProperty heroProperty)
-                    continue;
-                russianTokens[heroProperty.Key] = new VValue(heroProperty.Value);
-            }
-
-            russian.Value["Tokens"] = russianTokens;
-
-            if (!File.Exists(Path.Combine(path, RussianBackup)))
-                File.Copy(Path.Combine(path, Russian), Path.Combine(path, RussianBackup));
-
-            File.WriteAllText(Path.Combine(path, Russian), VdfConvert.Serialize(russian));
-
-            return true;
-        }
-        catch
-        {
-            return false;
-        }
+        var config = await configService.ObtainAsync();
+        await ChangeLocalizationAsync(localization, config.Localization.HeroPrefix);
     }
 
-    public bool ChangeLocalizationForItems(Localization localization)
+    public async Task ChangeLocalizationForItemsAsync(Localization localization)
     {
-        if (ObtainCurrentLocalizationForItems() == localization)
-            return false;
+        var config = await configService.ObtainAsync();
+        await ChangeLocalizationAsync(localization, config.Localization.ItemPrefix);
+    }
+
+    public async Task RestoreAsync()
+    {
+        var config = await configService.ObtainAsync();
+        var path = await searchService.ObtainAsync();
         
-        try
-        {
-            var path = search.ObtainAsync().Result;
-            ArgumentException.ThrowIfNullOrEmpty(path);
+        if (path == null)
+            throw new Exception("Не удалось получить путь к папке с игрой!");
             
-            if (localization == Localization.Russian)
-            {
-                File.Delete(Path.Combine(path, Russian));
-                File.Copy(Path.Combine(path, RussianBackup), Path.Combine(path, Russian));
-                File.Delete(Path.Combine(path, RussianBackup));
-                return true;
-            }
+        RestoreBackup(path, config);
+    }
+
+    private async Task<Localization> ObtainLocalizationAsync(ConfigEntity.LocalizationEntity.CheckingEntity checkingEntity)
+    {
+        var config = await configService.ObtainAsync();
+        var path = await searchService.ObtainAsync();
+
+        if (path == null)
+            throw new Exception("Не удалось получить путь к папке с игрой!");
+        
+        var vdfString = await File.ReadAllTextAsync(Path.Combine(path, config.Localization.RussianFileName));
+        var vdfDeserialized = VdfConvert.Deserialize(vdfString);
+        if (vdfDeserialized.Value[config.Localization.MainKey]?[checkingEntity.Key] is not VValue { Value: string value })
+            throw new Exception($"Ошибка при чтении файла {Path.GetFileName(config.Localization.RussianFileName)}");
+        
+        if (value == checkingEntity.EnglishValue)
+            return Localization.English;
+        
+        return value == checkingEntity.RussianValue 
+            ? Localization.Russian 
+            : Localization.Unknown;
+    }
+
+    private async Task ChangeLocalizationAsync(Localization localization, string prefix)
+    {
+        if (await ObtainLocalizationForHeroesAsync() == localization)
+            return;
+
+        var config = await configService.ObtainAsync();
+        var path = await searchService.ObtainAsync();
+        
+        if (path == null)
+            throw new Exception("Не удалось получить путь к папке с игрой!");
             
-            var englishFile = File.ReadAllText(Path.Combine(path, English));
-            var russianFile = File.ReadAllText(Path.Combine(path, Russian));
-
-            var english = VdfConvert.Deserialize(englishFile);
-            var russian = VdfConvert.Deserialize(russianFile);
-
-            var itemsForEnglish = english.Value["Tokens"]
-                ?.Where(token => (token as VProperty)?.Key.StartsWith("upgrade_") ?? false);
-
-            var itemsForRussian = russian.Value["Tokens"]
-                ?.Where(token => (token as VProperty)?.Key.StartsWith("upgrade_") ?? false);
-
-            var russianTokens = russian.Value["Tokens"];
-
-            ArgumentNullException.ThrowIfNull(itemsForEnglish);
-            ArgumentNullException.ThrowIfNull(itemsForRussian);
-            ArgumentNullException.ThrowIfNull(russianTokens);
-
-            foreach (var item in itemsForEnglish)
-            {
-                if (item is not VProperty itemProperty)
-                    continue;
-                russianTokens[itemProperty.Key] = new VValue(itemProperty.Value);
-            }
-
-            russian.Value["Tokens"] = russianTokens;
-
-            if (!File.Exists(Path.Combine(path, RussianBackup)))
-                File.Copy(Path.Combine(path, Russian), Path.Combine(path, RussianBackup));
-
-            File.WriteAllText(Path.Combine(path, Russian), VdfConvert.Serialize(russian));
-
-            return true;
-        }
-        catch
+        if (localization == Localization.Russian)
         {
-            return false;
+            RestoreBackup(path, config);
+            return;
         }
+        
+        var englishLocalizationFileName = Path.Combine(path, config.Localization.EnglishFileName);
+        var russianLocalizationFileName = Path.Combine(path, config.Localization.RussianFileName);
+        var backupLocalizationFileName = Path.Combine(path, config.Localization.RussianFileName + config.Localization.BackupExtension);
+        
+        var vdfEnglish = await File.ReadAllTextAsync(englishLocalizationFileName);
+        var vdfRussian = await File.ReadAllTextAsync(russianLocalizationFileName);
+
+        var vdfDeserializedEnglish = VdfConvert.Deserialize(vdfEnglish);
+        var vdfDeserializedRussian = VdfConvert.Deserialize(vdfRussian);
+
+        var tokensForEnglish = vdfDeserializedEnglish.Value[config.Localization.MainKey]
+            ?.Where(token => (token as VProperty)?.Key.StartsWith(prefix) ?? false);
+        
+        var russianTokens = vdfDeserializedRussian.Value[config.Localization.MainKey];
+
+        if (tokensForEnglish == null)
+            throw new Exception($"Ошибка при чтении файла {Path.GetFileName(config.Localization.EnglishFileName)}");
+        if (russianTokens == null)
+            throw new Exception($"Ошибка при чтении файла {Path.GetFileName(config.Localization.RussianFileName)}");
+                
+        foreach (var token in tokensForEnglish)
+        {
+            if (token is not VProperty property)
+                continue;
+            russianTokens[property.Key] = new VValue(property.Value);
+        }
+
+        vdfDeserializedRussian.Value[config.Localization.MainKey] = russianTokens;
+        
+        if (File.Exists(backupLocalizationFileName))
+            return;
+        
+        File.Copy(russianLocalizationFileName, backupLocalizationFileName);
+        await File.WriteAllTextAsync(russianLocalizationFileName, VdfConvert.Serialize(vdfDeserializedRussian));
+    }
+
+    private static void RestoreBackup(string path, ConfigEntity config)
+    {
+        var russianLocalizationFileName = Path.Combine(path, config.Localization.RussianFileName);
+        var backupLocalizationFileName = Path.Combine(path, config.Localization.RussianFileName + config.Localization.BackupExtension);
+
+        if (!File.Exists(backupLocalizationFileName))
+            throw new Exception("Отсутствует Backup файл! Пожалуйста, сделайте полную проверку файлов в Steam для восстановления локализации...");
+        
+        if (File.Exists(russianLocalizationFileName))
+            File.Delete(russianLocalizationFileName);
+        File.Copy(backupLocalizationFileName, russianLocalizationFileName);
+        File.Delete(backupLocalizationFileName);
     }
 }
