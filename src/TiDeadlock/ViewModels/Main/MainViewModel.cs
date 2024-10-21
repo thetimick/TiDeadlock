@@ -5,11 +5,16 @@ using CommunityToolkit.Mvvm.Input;
 using Microsoft.Extensions.Logging;
 using TiDeadlock.Resources;
 using TiDeadlock.Services.Localization;
+using TiDeadlock.Services.RunLoop;
+using TiDeadlock.Windows.Settings;
 
 namespace TiDeadlock.ViewModels.Main;
 
-public partial class MainViewModel(ILogger<MainViewModel> logger, ILocalizationService localizationService): ViewModelBase
-{
+public partial class MainViewModel(
+    ILogger<MainViewModel> logger, 
+    ILocalizationService localizationService,
+    IRunLoopService runLoopService
+ ): ObservableObject {
     [ObservableProperty] 
     [NotifyCanExecuteChangedFor(nameof(TapOnResetButtonCommand))]
     [NotifyCanExecuteChangedFor(nameof(TapOnPatchButtonCommand))]
@@ -17,6 +22,7 @@ public partial class MainViewModel(ILogger<MainViewModel> logger, ILocalizationS
     
     [ObservableProperty] 
     [NotifyCanExecuteChangedFor(nameof(TapOnPatchButtonCommand))]
+    [NotifyCanExecuteChangedFor(nameof(TapOnServiceButtonCommand))]
     private bool _useEnglishForHeroes;
     
     [ObservableProperty] 
@@ -26,6 +32,7 @@ public partial class MainViewModel(ILogger<MainViewModel> logger, ILocalizationS
     
     [ObservableProperty] 
     [NotifyCanExecuteChangedFor(nameof(TapOnPatchButtonCommand))]
+    [NotifyCanExecuteChangedFor(nameof(TapOnServiceButtonCommand))]
     private bool _useEnglishForItems;
     
     public async Task OnLoaded()
@@ -71,9 +78,9 @@ public partial class MainViewModel(ILogger<MainViewModel> logger, ILocalizationS
         logger.LogInformation("[TapOnPatchButton] Start");
         
         if (UseEnglishForHeroes && UseEnglishForHeroesIsEnabled) 
-            await localizationService.ChangeLocalizationForHeroesAsync(LocalizationService.Localization.English);
+            await localizationService.ChangeLocalizationForHeroesAsync();
         if (UseEnglishForItems && UseEnglishForItemsIsEnabled) 
-            await localizationService.ChangeLocalizationForItemsAsync(LocalizationService.Localization.English);
+            await localizationService.ChangeLocalizationForItemsAsync();
         
         await Prepare();
         
@@ -86,7 +93,41 @@ public partial class MainViewModel(ILogger<MainViewModel> logger, ILocalizationS
         
         logger.LogInformation("[apOnPatchButton] Finish");
     }
-    
+
+    [RelayCommand(CanExecute = nameof(CanExecuteServiceButton))]
+    private async Task TapOnServiceButton()
+    {
+        var isInstalled = await runLoopService.IsInstalledAsync();
+        if (isInstalled)
+        {
+            await runLoopService.UninstallAsync();
+            MessageBox.Show(
+                "Сервисный режим был отключен!", 
+                AppLocalization.MessageBoxServiceTitle,
+                MessageBoxButton.OK, 
+                MessageBoxImage.Information
+            );
+            return;
+        }
+        
+        var mbResult = MessageBox.Show(
+            AppLocalization.MessageBoxServiceDescription,
+            AppLocalization.MessageBoxServiceTitle, 
+            MessageBoxButton.YesNo, 
+            MessageBoxImage.Question
+        );
+        
+        if (mbResult != MessageBoxResult.Yes)
+            return;
+        
+        await runLoopService.InstallAsync(UseEnglishForHeroes, UseEnglishForItems);
+    }
+}
+
+#region Private Methods
+
+public partial class MainViewModel
+{
     private async Task Prepare()
     {
         logger.LogInformation("[Prepare] Start");
@@ -111,4 +152,11 @@ public partial class MainViewModel(ILogger<MainViewModel> logger, ILocalizationS
     {
         return (UseEnglishForHeroes && UseEnglishForHeroesIsEnabled) || (UseEnglishForItems && UseEnglishForItemsIsEnabled);
     }
+    
+    private bool CanExecuteServiceButton()
+    {
+        return UseEnglishForHeroes || UseEnglishForHeroesIsEnabled;
+    }
 }
+
+#endregion

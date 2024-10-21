@@ -17,21 +17,21 @@ public partial class MainWindow
         InitializeComponent();
     }
     
-    private void Border_OnMouseDown(object sender, MouseButtonEventArgs e)
+    private void TitleBarOnMouseDown(object sender, MouseButtonEventArgs e)
     {
-        if (e.ButtonState == MouseButtonState.Pressed)
+        if (e.LeftButton == MouseButtonState.Pressed)
             DragMove();
     }
     
-    private void Minimize_Click(object sender, RoutedEventArgs e)
+    private void MinimizeButtonClick(object sender, RoutedEventArgs e)
     {
-        _logger.LogInformation("Minimizing...");
+        _logger.LogInformation("[MinimizeButtonClick]");
         WindowState = WindowState.Minimized;
     }
     
-    private void Close_Click(object sender, RoutedEventArgs e)
+    private void CloseButtonClick(object sender, RoutedEventArgs e)
     {
-        _logger.LogInformation("Closing...");
+        _logger.LogInformation("[CloseButtonClick]");
         Close();
     }
 }

@@ -166,5 +166,25 @@ namespace TiDeadlock.Resources {
                 return ResourceManager.GetString("MessageBoxQuestionTitle", resourceCulture);
             }
         }
+        
+        /// <summary>
+        ///   Looks up a localized string similar to В настоящее время существует проблема с обновлением игры, связанная с изменением хеш-суммы файла локализации после установки патча. Это приводит к конфликту с клиентом Steam, который не позволяет обновить игру.
+        ///
+        ///Режим «Сервис» предназначен для автоматического обновления файла локализации при запуске игры и восстановления исходного файла при её закрытии. Однако стоит учитывать, что этот режим добавляет программу в автозапуск и постоянно сканирует системные процессы, ожидая запуска игры. Это может снизить п [rest of string was truncated]&quot;;.
+        /// </summary>
+        public static string MessageBoxServiceDescription {
+            get {
+                return ResourceManager.GetString("MessageBoxServiceDescription", resourceCulture);
+            }
+        }
+        
+        /// <summary>
+        ///   Looks up a localized string similar to Сервисный режим.
+        /// </summary>
+        public static string MessageBoxServiceTitle {
+            get {
+                return ResourceManager.GetString("MessageBoxServiceTitle", resourceCulture);
+            }
+        }
     }
 }

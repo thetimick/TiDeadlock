@@ -11,8 +11,8 @@ public interface ILocalizationService
     Task<LocalizationService.Localization> ObtainLocalizationForHeroesAsync();
     Task<LocalizationService.Localization> ObtainLocalizationForItemsAsync();
     
-    Task ChangeLocalizationForHeroesAsync(LocalizationService.Localization localization);
-    Task ChangeLocalizationForItemsAsync(LocalizationService.Localization localization);
+    Task ChangeLocalizationForHeroesAsync(LocalizationService.Localization localization = LocalizationService.Localization.English);
+    Task ChangeLocalizationForItemsAsync(LocalizationService.Localization localization = LocalizationService.Localization.English);
 
     Task RestoreAsync();
 }
@@ -43,12 +43,22 @@ public class LocalizationService(
     public async Task ChangeLocalizationForHeroesAsync(Localization localization)
     {
         var config = await configService.ObtainAsync();
+        
+        var currentLocalization = await ObtainLocalizationAsync(config.Localization.CheckingHeroes);
+        if (currentLocalization == localization)
+            return;
+        
         await ChangeLocalizationAsync(localization, config.Localization.HeroPrefix);
     }
 
     public async Task ChangeLocalizationForItemsAsync(Localization localization)
     {
         var config = await configService.ObtainAsync();
+        
+        var currentLocalization = await ObtainLocalizationAsync(config.Localization.CheckingItems);
+        if (currentLocalization == localization)
+            return;
+        
         await ChangeLocalizationAsync(localization, config.Localization.ItemPrefix);
     }
 
@@ -86,9 +96,6 @@ public class LocalizationService(
 
     private async Task ChangeLocalizationAsync(Localization localization, string prefix)
     {
-        if (await ObtainLocalizationForHeroesAsync() == localization)
-            return;
-
         var config = await configService.ObtainAsync();
         var path = await searchService.ObtainAsync();
         
@@ -129,9 +136,12 @@ public class LocalizationService(
         }
 
         vdfDeserializedRussian.Value[config.Localization.MainKey] = russianTokens;
-        
+
         if (File.Exists(backupLocalizationFileName))
+        {
+            await File.WriteAllTextAsync(russianLocalizationFileName, VdfConvert.Serialize(vdfDeserializedRussian));
             return;
+        }
         
         File.Copy(russianLocalizationFileName, backupLocalizationFileName);
         await File.WriteAllTextAsync(russianLocalizationFileName, VdfConvert.Serialize(vdfDeserializedRussian));

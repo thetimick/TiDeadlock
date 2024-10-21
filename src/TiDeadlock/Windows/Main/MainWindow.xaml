@@ -50,7 +50,7 @@
                 Height="32"
                 Background="#FFEFD7"
                 CornerRadius="4,4,0,0"
-                MouseDown="Border_OnMouseDown">
+                MouseDown="TitleBarOnMouseDown">
 
                 <Grid>
                     <Grid.ColumnDefinitions>
@@ -69,30 +69,34 @@
                         Foreground="#313131"
                         Text="{x:Static res:AppLocalization.AppTitle}" />
 
-                    <Button
+                    <StackPanel
                         Grid.Column="2"
-                        HorizontalAlignment="Right"
-                        Click="Minimize_Click"
-                        Foreground="Black"
-                        Style="{StaticResource CustomTitleBarButtonStyle}">
-                        <Path
-                            Data="M 0,15 H 15"
-                            Stroke="Black"
-                            StrokeThickness="2" />
-                    </Button>
-
-                    <Button
-                        Grid.Column="3"
                         Margin="0,0,10,0"
-                        HorizontalAlignment="Right"
-                        Click="Close_Click"
-                        Foreground="Black"
-                        Style="{StaticResource CustomTitleBarButtonStyle}">
-                        <Path
-                            Data="M 0,0 L 15,15 M 15,0 L 0,15"
-                            Stroke="Black"
-                            StrokeThickness="2" />
-                    </Button>
+                        spSpacing:Spacing.Horizontal="4"
+                        Orientation="Horizontal">
+                        <Button
+                            HorizontalAlignment="Right"
+                            Click="MinimizeButtonClick"
+                            Foreground="Black"
+                            Style="{StaticResource CustomTitleBarButtonStyle}">
+                            <Path
+                                Data="M 0,15 H 15"
+                                Stroke="Black"
+                                StrokeThickness="2" />
+                        </Button>
+
+                        <Button
+                            Margin="0,0,10,0"
+                            HorizontalAlignment="Right"
+                            Click="CloseButtonClick"
+                            Foreground="Black"
+                            Style="{StaticResource CustomTitleBarButtonStyle}">
+                            <Path
+                                Data="M 0,0 L 15,15 M 15,0 L 0,15"
+                                Stroke="Black"
+                                StrokeThickness="2" />
+                        </Button>
+                    </StackPanel>
                 </Grid>
             </Border>
             <!--  TitleBar  -->
@@ -161,11 +165,10 @@
                             Content="{x:Static res:AppLocalization.MainWindowButtonRestore}"
                             Style="{StaticResource CustomButtonStyle}" />
 
-                        <Border BorderBrush="#FFEFD7" BorderThickness="1" />
-
                         <Button
                             Width="128"
                             Height="32"
+                            Command="{Binding TapOnServiceButtonCommand}"
                             Content="Сервис"
                             Style="{StaticResource CustomButtonStyle}" />
                     </StackPanel>

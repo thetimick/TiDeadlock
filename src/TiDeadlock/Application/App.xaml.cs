@@ -5,7 +5,6 @@ using Microsoft.Extensions.DependencyInjection;
 using Microsoft.Extensions.Hosting;
 using Serilog;
 using TiDeadlock.Resources;
-using TiDeadlock.Services;
 using TiDeadlock.Services.Config;
 using TiDeadlock.Services.Localization;
 using TiDeadlock.Services.RunLoop;
@@ -13,13 +12,15 @@ using TiDeadlock.Services.Search;
 using TiDeadlock.Services.Storage;
 using TiDeadlock.Services.Update;
 using TiDeadlock.ViewModels.Main;
+using TiDeadlock.ViewModels.Settings;
 using TiDeadlock.Windows.Main;
+using TiDeadlock.Windows.Settings;
 
 namespace TiDeadlock.Application;
 
 public partial class App
 {
-    public static readonly IHost AppHost = Host.CreateDefaultBuilder()
+    private static readonly IHost AppHost = Host.CreateDefaultBuilder()
         .ConfigureAppConfiguration(
             builder =>
             {
@@ -28,11 +29,14 @@ public partial class App
             }
         )
         .ConfigureServices(
-            collection =>
+            (context, collection) =>
             {
-                ConfigureLogging();
-                collection.AddLogging(builder => builder.AddSerilog(dispose: true));
-                
+                if (context.Configuration.GetValue<bool>("logs"))
+                {
+                    ConfigureLogging();
+                    collection.AddLogging(builder => builder.AddSerilog(dispose: true));
+                }
+
                 collection.AddHostedService<AppHostService>();
                 
                 collection.AddSingleton<IUpdateService, UpdateService>();
@@ -44,6 +48,9 @@ public partial class App
                 
                 collection.AddSingleton<MainViewModel>();
                 collection.AddSingleton<MainWindow>();
+
+                collection.AddScoped<SettingsViewModel>();
+                collection.AddScoped<SettingsWindow>();
             }
         )
         .Build();

@@ -36,7 +36,7 @@ public partial class AppHostService(IConfiguration configuration, IServiceProvid
         else
         {
             // Программа запущена как сервис
-            provider.GetService<IRunLoopService>()?.Run();
+            provider.GetService<IRunLoopService>()?.RunAsync();
         }
     }
 
