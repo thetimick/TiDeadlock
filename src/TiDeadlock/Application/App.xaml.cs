@@ -4,6 +4,7 @@ using Microsoft.Extensions.Configuration;
 using Microsoft.Extensions.DependencyInjection;
 using Microsoft.Extensions.Hosting;
 using Serilog;
+using TiDeadlock.Extensions.Exception;
 using TiDeadlock.Resources;
 using TiDeadlock.Services.Config;
 using TiDeadlock.Services.Localization;
@@ -31,7 +32,7 @@ public partial class App
         .ConfigureServices(
             (context, collection) =>
             {
-                if (context.Configuration.GetValue<bool>("logs"))
+                if (context.Configuration["logs"] != "false")
                 {
                     ConfigureLogging();
                     collection.AddLogging(builder => builder.AddSerilog(dispose: true));
@@ -68,14 +69,16 @@ public partial class App
     
     private void OnDispatcherUnhandledException(object sender, DispatcherUnhandledExceptionEventArgs e)
     {
+        Log.Logger.Error(e.Exception.GetShortStackTrace() ?? "n/n");
+        
         MessageBox.Show(
-            $"{e.Exception.Message}\n\n{string.Join("", e.Exception.StackTrace?.Take(800) ?? [])}", 
+            e.Exception.GetShortStackTrace(), 
             AppLocalization.MessageBoxErrorTitle, 
             MessageBoxButton.OK, 
             MessageBoxImage.Error
         );
-
-        e.Handled = true;
+        
+        e.Handled = false;
     }
 
     private static void ConfigureLogging()

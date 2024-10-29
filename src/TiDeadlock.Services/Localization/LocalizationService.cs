@@ -1,5 +1,6 @@
 ﻿using Gameloop.Vdf;
 using Gameloop.Vdf.Linq;
+using Microsoft.Extensions.Logging;
 using TiDeadlock.Entities.Config;
 using TiDeadlock.Services.Config;
 using TiDeadlock.Services.Search;
@@ -18,6 +19,7 @@ public interface ILocalizationService
 }
 
 public class LocalizationService(
+    ILogger<LocalizationService> logger,
     IConfigService configService,
     ISearchService searchService
 ): ILocalizationService {
@@ -42,6 +44,8 @@ public class LocalizationService(
 
     public async Task ChangeLocalizationForHeroesAsync(Localization localization)
     {
+        logger.LogInformation("[ChangeLocalizationForHeroesAsync] Starting...");
+        
         var config = await configService.ObtainAsync();
         
         var currentLocalization = await ObtainLocalizationAsync(config.Localization.CheckingHeroes);
@@ -49,10 +53,14 @@ public class LocalizationService(
             return;
         
         await ChangeLocalizationAsync(localization, config.Localization.HeroPrefix);
+        
+        logger.LogInformation("[ChangeLocalizationForHeroesAsync] Finished.");
     }
 
     public async Task ChangeLocalizationForItemsAsync(Localization localization)
     {
+        logger.LogInformation("[ChangeLocalizationForItemsAsync] Starting...");
+        
         var config = await configService.ObtainAsync();
         
         var currentLocalization = await ObtainLocalizationAsync(config.Localization.CheckingItems);
@@ -60,17 +68,23 @@ public class LocalizationService(
             return;
         
         await ChangeLocalizationAsync(localization, config.Localization.ItemPrefix);
+        
+        logger.LogInformation("[ChangeLocalizationForItemsAsync] Finished.");
     }
 
     public async Task RestoreAsync()
     {
+        logger.LogInformation("[RestoreAsync] Starting...");
+        
         var config = await configService.ObtainAsync();
         var path = await searchService.ObtainAsync();
-        
+
         if (path == null)
             throw new Exception("Не удалось получить путь к папке с игрой!");
             
         RestoreBackup(path, config);
+        
+        logger.LogInformation("[RestoreAsync] Finished.");
     }
 
     private async Task<Localization> ObtainLocalizationAsync(ConfigEntity.LocalizationEntity.CheckingEntity checkingEntity)
